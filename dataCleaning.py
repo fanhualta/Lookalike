@@ -91,6 +91,7 @@ dataDevPD['Android'] = dataDevPD.device.apply(
 dataDevPD.pop('device')  # 删除device列
 dataDevPD.set_index('tdid')
 dataDevPD = dataDevPD.drop_duplicates('tdid')
+dataDevPD.sort_index
 
 # 开始处理位置信息
 # print(dataAoiPD)
@@ -99,10 +100,11 @@ dataDevPD = dataDevPD.drop_duplicates('tdid')
 # print(pd.get_dummies(dataAoiPD.set_index('tdid').stack()).sum(level=0))
 dataAoisPD = pd.get_dummies(dataAoiPD.set_index('tdid').stack()).sum(level=0)
 dataAoisPD.pop('null')  # 删除null列
-dataAois1PD = pd.DataFrame(dataAoisPD)
+dataAoiPD.set_index('tdid')
+dataAoiPD.sort_index
 
 dataDevPD.to_csv('src/DataCleaning/DevFeatures.csv', encoding='utf-8_sig')
-dataAois1PD.to_csv('src/DataCleaning/AoiFeatures.csv', encoding='utf-8_sig')
+dataAoisPD.to_csv('src/DataCleaning/AoiFeatures.csv', encoding='utf-8_sig')
 
 # 开始处理App信息
 print(len(dataAppPD))
