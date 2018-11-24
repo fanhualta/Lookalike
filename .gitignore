@@ -2,8 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.idea/
 
-src/DataCleaning/
+src/resource/DataCleaning
 
 # C extensions
 *.so
