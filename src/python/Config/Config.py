@@ -1,1 +1,1 @@
-FILE_ROOT_DIRECTORY = '/Users/litianan/workspace/Python/Pycharm/Lookalike'
+FILE_ROOT_DIRECTORY = 'D:/study/大数据系统/Lookalike/Lookalike'

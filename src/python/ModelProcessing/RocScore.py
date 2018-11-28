@@ -1,7 +1,11 @@
 from sklearn.metrics import roc_auc_score
 import csv
 import os
-from src.python.Config.Config import FILE_ROOT_DIRECTORY
+import sys
+
+sys.path.append(os.path.join(sys.path[0], '..', 'Config'))
+
+from Config import FILE_ROOT_DIRECTORY
 
 
 # 本程序被LookalikeModel的model_training_and_predict函数调用，作为最后计算roc准确性的步骤
@@ -10,7 +14,8 @@ from src.python.Config.Config import FILE_ROOT_DIRECTORY
 
 def roc_score(y_true_path, y_score_path):
     all_tdid = []
-    with open(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/FinalFeaturesSorted.csv'), 'r') as f:
+    with open(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/FinalFeaturesSorted.csv'), 'r',
+              encoding='utf-8_sig') as f:
         rows = csv.reader(f)
         row_index = 0
         for row in rows:
@@ -46,6 +51,7 @@ def roc_score(y_true_path, y_score_path):
     return roc_auc_score(y_true, y_scores)
 
 
-result = roc_score(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/1.txt'),
-                   os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/predict_proba.csv'))
-print(result)
+if __name__ == '__main__':
+    result = roc_score(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/1.txt'),
+                       os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/predict_proba.csv'))
+    print(result)

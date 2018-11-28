@@ -3,8 +3,14 @@ import numpy as np
 import csv
 import os
 from sklearn.tree import DecisionTreeClassifier
-from src.python.ModelProcessing.RocScore import roc_score
-from src.python.Config.Config import FILE_ROOT_DIRECTORY
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.neural_network import MLPClassifier
+import sys
+
+sys.path.append(os.path.join(sys.path[0], '..', 'Config'))
+from RocScore import roc_score
+from Config import FILE_ROOT_DIRECTORY
 
 
 # 本函数用于模型训练和预测，以及通过调用RocScore中的roc_score函数计算出最后的准确率
@@ -12,12 +18,14 @@ from src.python.Config.Config import FILE_ROOT_DIRECTORY
 # 函数参数分别为：种子人群文件路径、 训练次数、正确结果的文件路径
 
 
-def model_training_and_predict(seeds_path, t, y_true_path):
+def model_training_and_predict(seeds_path, t, y_true_path, model):
     # 1. 获取所有的数据特征
     all_features = []
-    with open(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/FinalFeaturesSorted.csv'), 'r') as f:
+    with open(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/FinalFeaturesSorted.csv'), 'r',
+              encoding='utf-8_sig') as f:
         rows = csv.reader(f)
         row_index = 0
+        print(f)
         for row in rows:
             row_index += 1
             if row_index == 1:
@@ -81,8 +89,6 @@ def model_training_and_predict(seeds_path, t, y_true_path):
         # 获取训练集，训练集的构成为： Positive set + bootstrapped unlabeled set
         data_bootstrap = np.concatenate((data_P, data_U[bootstrap_sample, :]), axis=0)
         # 训练模型
-        model = DecisionTreeClassifier(max_depth=None, max_features=None,
-                                       criterion='gini', class_weight='balanced')
         # 模型训练
         model.fit(data_bootstrap, train_label)
         # 结果预测
@@ -116,5 +122,15 @@ def model_training_and_predict(seeds_path, t, y_true_path):
     # np.savetxt('src/PredictProbability/predict_proba_tdid.csv', predict_proba_tdid, delimiter=',', fmt='%d,%f')
 
 
-result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_1'), 100, os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/1.txt'))
-print(result)
+if __name__ == '__main__':
+    # 训练模型
+    # model = GradientBoostingClassifier(max_features=None, max_depth=None, min_samples_split=8, min_samples_leaf=3, n_estimators=1200, learning_rate=0.05, subsample=0.95)
+    # model = DecisionTreeClassifier(max_depth=None, max_features=None, criterion='gini', class_weight='balanced')
+    # model = AdaBoostClassifier()
+    train_times = [1, 10, 100]
+    for i in range(len(train_times)):
+        result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_1'),
+                                            train_times[i],
+                                            os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/1.txt'),
+                                            model)
+        print(result)
