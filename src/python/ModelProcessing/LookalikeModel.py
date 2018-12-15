@@ -121,6 +121,10 @@ def model_training_and_predict(seeds_path, t, y_true_path):
     # print(f_oob)
     # 预测结果
     predict_proba = f_oob[:, 1] / n_oob
+    # 对于种子人群的预测概率，直接置为1.0
+    for row_id in range(len(all_features)):
+        if all_features[row_id][0] in positive_group:
+            predict_proba[row_id] = 1.0
     # 将结果进行保存
     np.savetxt(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/predict_proba.csv'), predict_proba,
                delimiter=',', fmt='%f')
@@ -142,6 +146,6 @@ def model_training_and_predict(seeds_path, t, y_true_path):
     # np.savetxt('src/PredictProbability/predict_proba_tdid.csv', predict_proba_tdid, delimiter=',', fmt='%d,%f')
 
 
-result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_2'), 10,
-                                    os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/2.txt'))
+result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_1'), 100,
+                                    os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/1.txt'))
 print(result)
