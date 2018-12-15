@@ -1,24 +1,23 @@
 from __future__ import division, print_function
+
+import operator
 import pandas as pd
 import csv
 import os
+from filecmp import cmp
+
+from src.python.Config.Config import FILE_ROOT_DIRECTORY
 
 
 # 功能：对字典中的values进行排序并获取排序后的前n个keys
 def order_dict(dicts, n):
     result = []
-    result1 = []
-    p = sorted([(k, v) for k, v in dicts.items()], reverse=True)
-    s = set()
-    for i in p:
-        s.add(i[1])
-    for i in sorted(s, reverse=True)[:n]:
-        for j in p:
-            if j[1] == i:
-                result.append(j)
-    for r in result:
-        result1.append(r[0])
-    return result1
+    # result1 = []
+    p = sorted(dicts.items(), key=operator.itemgetter(1))
+    p.reverse()
+    for i in range(n):
+        result.append(p[i][0])
+    return result
 
 
 # 本程序中用来对app特征进行提取
@@ -33,9 +32,13 @@ def order_dict(dicts, n):
 
 
 # 尝试的第二种方式：换一种用字典的方式提取APP的特征
+# d = {"Pierre": 42, "Anne": 33, "Zoe": 24}
+# sorted_d = sorted(d.items(), key=lambda x: x[1])
+# sorted_d.reverse()
+# a = sorted_d[0][0]
 dic = {}
 originData = []
-with open(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/AppPD_DROP_DUP.csv'), 'r') as f:
+with open(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/App.csv'), 'r') as f:
     rows = csv.reader(f)
     row_index = 0
     for row in rows:
@@ -55,7 +58,10 @@ print(len(keys))
 # dic = sorted(dic.items(), key=lambda x: x[1], reverse=True)
 # print(dic)
 dataAppFeatures = []
+tdidInFeature = []  # 用来记录在Feature中该tdid的位置
 for rowNum in range(len(originData)):
+    if rowNum % 10000 == 0:
+        print(rowNum)
     dataAppFeaturesItem = []
     originRow = originData[rowNum]
     # print(originRow)
@@ -63,14 +69,25 @@ for rowNum in range(len(originData)):
         dataAppFeaturesItem.append(originRow[0])
         for key in keys:
             dataAppFeaturesItem.append(key)
+        dataAppFeatures.append(dataAppFeaturesItem)
     else:
-        dataAppFeaturesItem.append(originRow[0])
-        for key in keys:
-            if key in originRow:
-                dataAppFeaturesItem.append(1)
-            else:
-                dataAppFeaturesItem.append(0)
-    dataAppFeatures.append(dataAppFeaturesItem)
+        if originRow[0] in tdidInFeature:  # 如果该tdid已经出现过
+            tdid_index = tdidInFeature.index(originRow[0])
+            dataAppFeaturesItem = dataAppFeatures[tdid_index + 1]
+            for keyId in range(len(keys)):  # 检查每个key是否存在
+                if keys[keyId] in originRow:
+                    dataAppFeaturesItem[keyId + 1] += 1
+            # # 替换掉相应位置处的tdid的数据
+            # dataAppFeatures[tdid_index + 1] = dataAppFeaturesItem
+        else:  # 如果该tdid没出现过,则添加该tdid
+            dataAppFeaturesItem.append(originRow[0])
+            tdidInFeature.append(originRow[0])
+            for key in keys:
+                if key in originRow:
+                    dataAppFeaturesItem.append(1)
+                else:
+                    dataAppFeaturesItem.append(0)
+            dataAppFeatures.append(dataAppFeaturesItem)
 dataAppPDFeatures = pd.DataFrame(data=dataAppFeatures)
 print(len(dataAppPDFeatures))
 dataAppPDFeatures.to_csv(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/AppFeatures.csv'),

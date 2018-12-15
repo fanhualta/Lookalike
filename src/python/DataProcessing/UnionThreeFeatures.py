@@ -4,7 +4,7 @@ import pandas as pd
 import csv
 import os
 
-# 本程序的目的是将三个提取出来的特征整合到一起，首先进行排序，并比较其中的tsid的数量
+# 本程序的目的是将三个提取出来的特征整合到一起，首先进行排序，并比较其中的tdid的数量
 
 # dataAppPD = pd.read_csv('src/DataCleaning/AppFeatures.csv')
 # print(dataAppPD)

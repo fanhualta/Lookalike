@@ -32,9 +32,9 @@ def roc_score(y_true_path, y_score_path):
         # row.append(int(all_tdid[row_id]))
         if int(all_tdid[row_id]) in all_P:
             count += 1
-            y_true.append(1)
+            y_true.append(1.0)
         else:
-            y_true.append(0)
+            y_true.append(0.0)
     # print('1.txt中有%d个有效数据' % count)
     # print(y_true)
     # np.savetxt("src/PredictProbability/y_true.csv", y_true, delimiter=",")

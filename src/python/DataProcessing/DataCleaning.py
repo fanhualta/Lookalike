@@ -108,13 +108,13 @@ dataAoiPD.sort_index
 dataDevPD.to_csv(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/DevFeatures.csv'), encoding='utf-8_sig')
 dataAoisPD.to_csv(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/AoiFeatures.csv'), encoding='utf-8_sig')
 
-# 开始处理App信息
-print(len(dataAppPD))
-dataAppPD.set_index('tdid')
-dataAppPD = dataAppPD.drop_duplicates('tdid')  # 去重处理
-print(len(dataAppPD))
-dataAppPD.to_csv(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/AppPD_DROP_DUP.csv'),
-                 encoding='utf-8_sig')
+# 开始处理App信息,此处就对App的信息进行去重处理是一个非常错误的决定，不能进行去重的处理
+# print(len(dataAppPD))
+# dataAppPD.set_index('tdid')
+# dataAppPD = dataAppPD.drop_duplicates('tdid')  # 去重处理  ✘✘✘这里不能进行去重处理，因为这样的话就仅仅有一天使用的APP数据了
+# print(len(dataAppPD))
+# dataAppPD.to_csv(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/AppPD_DROP_DUP.csv'),
+#                  encoding='utf-8_sig')
 # print(len(pd.get_dummies(dataAppPD.set_index('tdid').stack())))
 # dataAppPD = pd.get_dummies(dataAppPD.set_index('tdid').stack()).sum(level=0)
 # dataAppPD.loc['Row_sum'] = dataAppPD.apply(lambda x: x.sum())

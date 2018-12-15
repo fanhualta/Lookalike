@@ -1,14 +1,17 @@
 from __future__ import division, print_function
 import numpy as np
+import pandas as pd
 import csv
 import os
 from sklearn.tree import DecisionTreeClassifier
+from sklearn import svm
+from xgboost import XGBClassifier
 from src.python.ModelProcessing.RocScore import roc_score
 from src.python.Config.Config import FILE_ROOT_DIRECTORY
 
 
 # 本函数用于模型训练和预测，以及通过调用RocScore中的roc_score函数计算出最后的准确率
-# 提取的总特征数362， 行数84572，FinalFeaturesSorted.csv表为84572 rows * 326 columns的形式，其中依次是AppFeatures:326个,AoiFeatures:35个,DevFeatures:2个
+# 提取的总特征数337， 行数84572，FinalFeaturesSorted.csv表为84572 rows * 337 columns的形式，其中依次是AppFeatures:300个,AoiFeatures:35个,DevFeatures:2个
 # 函数参数分别为：种子人群文件路径、 训练次数、正确结果的文件路径
 
 
@@ -68,7 +71,7 @@ def model_training_and_predict(seeds_path, t, y_true_path):
 
     # 5. 模型训练和结果预测
     # T = 100  # 训练次数：100次
-    K = NP  # 正样本数
+    K = int(NP)  # 正样本数
     train_label = np.zeros(shape=(NP + K,))  # 训练样本的数量为正样本的数量乘2
     shape = (NP + K,)
     train_label[:NP] = 1.0
@@ -80,9 +83,32 @@ def model_training_and_predict(seeds_path, t, y_true_path):
         bootstrap_sample = np.random.choice(np.arange(NU), replace=True, size=K)  # 从非样本实例中随机选取一定数量的样本，并取完放回，长度为NP
         # 获取训练集，训练集的构成为： Positive set + bootstrapped unlabeled set
         data_bootstrap = np.concatenate((data_P, data_U[bootstrap_sample, :]), axis=0)
+        # data_bootstrap = pd.concat((data_P, data_U.iloc[bootstrap_sample, :]), axis=0)
         # 训练模型
-        model = DecisionTreeClassifier(max_depth=None, max_features=None,
-                                       criterion='gini', class_weight='balanced')
+        # model = svm.SVC()  # SVM
+        model = XGBClassifier(n_jobs=4)  # XGBoost
+        # model = XGBClassifier(silent=0,  # 设置成1则没有运行信息输出，最好是设置为0.是否在运行升级时打印消息。
+        #                       # nthread=4,# cpu 线程数 默认最大
+        #                       learning_rate=0.3,  # 如同学习率
+        #                       min_child_weight=1,
+        #                       # 这个参数默认是 1，是每个叶子里面 h 的和至少是多少，对正负样本不均衡时的 0-1 分类而言
+        #                       # ，假设 h 在 0.01 附近，min_child_weight 为 1 意味着叶子节点中最少需要包含 100 个样本。
+        #                       # 这个参数非常影响结果，控制叶子节点中二阶导的和的最小值，该参数值越小，越容易 overfitting。
+        #                       max_depth=6,  # 构建树的深度，越大越容易过拟合
+        #                       gamma=0,  # 树的叶子节点上作进一步分区所需的最小损失减少,越大越保守，一般0.1、0.2这样子。
+        #                       subsample=1,  # 随机采样训练样本 训练实例的子采样比
+        #                       max_delta_step=0,  # 最大增量步长，我们允许每个树的权重估计。
+        #                       colsample_bytree=1,  # 生成树时进行的列采样
+        #                       reg_lambda=1,  # 控制模型复杂度的权重值的L2正则化项参数，参数越大，模型越不容易过拟合。
+        #                       # reg_alpha=0, # L1 正则项参数
+        #                       # scale_pos_weight=1, #如果取值大于0的话，在类别样本不平衡的情况下有助于快速收敛。平衡正负权重
+        #                       # objective= 'multi:softmax', #多分类的问题 指定学习任务和相应的学习目标
+        #                       # num_class=10, # 类别数，多分类与 multisoftmax 并用
+        #                       n_estimators=100,  # 树的个数
+        #                       seed=1000  # 随机种子
+        #                       # eval_metric= 'auc'
+        #                       )  # XGBoost
+        # model = DecisionTreeClassifier(max_depth=None, max_features=None, criterion='entropy', class_weight='balanced')  # 决策树
         # 模型训练
         model.fit(data_bootstrap, train_label)
         # 结果预测
@@ -116,5 +142,6 @@ def model_training_and_predict(seeds_path, t, y_true_path):
     # np.savetxt('src/PredictProbability/predict_proba_tdid.csv', predict_proba_tdid, delimiter=',', fmt='%d,%f')
 
 
-result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_1'), 100, os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/1.txt'))
+result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_2'), 10,
+                                    os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/PredictProbability/2.txt'))
 print(result)
