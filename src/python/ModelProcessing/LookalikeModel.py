@@ -34,35 +34,32 @@ def model_training_and_predict(seeds_path, t, y_true_path, model):
             if row_index == 1:
                 # print(len(row))
                 continue
+            row = list(map(int, row))
             all_features.append(row)
     # print(len(all_tdid))
+    all_features = np.asarray(all_features)
 
     # 2. 获取所有的正样本
     positive_group = []  # 表示正样本的tdid
     with open(seeds_path, 'r') as f:
         rows = csv.reader(f)
         for row in rows:
-            positive_group.append(row[0])
+            positive_group.append(int(row[0]))
     # print(len(all_features))
     # print(len(positive_group))
     # print(all_features)
 
-    # 3. 构成全量数据的label
-    label = []  # 表示每个tdid的label，0表示的是负样本，1表示的是正样本
-    count = 0
-    for row_id in range(len(all_features)):
-        # print(all_tdid[row_id][0])
-        if all_features[row_id][0] in positive_group:
-            label.append(1)
-            count += 1
-        else:
-            label.append(0)
+    # 3. 构成全量数据的y:label
+    y = np.zeros(all_features.shape[0])  # 表示每个tdid的label，0表示的是负样本，1表示的是正样本
+    index = range(all_features.shape[0])
+    d = dict(zip(list(all_features[:, 0]), index))
+    positive_index = [d.get(i) for i in positive_group if d.get(i)]
+    y[positive_index] = 1
     # print(len(label))
     # print(count)
 
     # 4. 转化为numpy数组用于数据处理
-    y = np.asarray(label)  # 转化为np
-    data_A = np.asarray(all_features)[:, 1:]  # 待预测的全部数据
+    data_A = all_features[:, 1:]  # 待预测的全部数据
     data_P = data_A[y == 1]  # 正样本
     data_U = data_A[y == 0]  # 无标签样本
 
@@ -77,10 +74,13 @@ def model_training_and_predict(seeds_path, t, y_true_path, model):
 
     # 5. 模型训练和结果预测
     # T = 100  # 训练次数：100次
+
+
     K = int(NP)  # 正样本数
     train_label = np.zeros(shape=(NP + K,))  # 训练样本的数量为正样本的数量乘2
-    shape = (NP + K,)
+
     train_label[:NP] = 1.0
+
     n_oob = np.zeros(shape=(NA,))  # 训练中被预测的次数
     f_oob = np.zeros(shape=(NA, 2))  # 预测的结果
     for i in range(t):
@@ -100,7 +100,7 @@ def model_training_and_predict(seeds_path, t, y_true_path, model):
         f_oob[idx_oob] += model.predict_proba(data_A[idx_oob])  # 每一个样本的数量
         # 被预测的次数
         n_oob[idx_oob] += 1
-
+    
     # print(f_oob)
     # 预测结果
     predict_proba = f_oob[:, 1] / n_oob
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     # 训练模型
     # model = GradientBoostingClassifier(max_features=None, max_depth=None, min_samples_split=8, min_samples_leaf=3, n_estimators=1200, learning_rate=0.05, subsample=0.95)
     # model = DecisionTreeClassifier(max_depth=None, max_features=None, criterion='gini', class_weight='balanced')
-    # model = AdaBoostClassifier()
+    #model = AdaBoostClassifier()
     # model = svm.SVC()  # SVM
     model = XGBClassifier(n_jobs=4)  # XGBoost
     # model = XGBClassifier(silent=0,  # 设置成1则没有运行信息输出，最好是设置为0.是否在运行升级时打印消息。
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     #                       # eval_metric= 'auc'
     #                       )  # XGBoost
     # model = DecisionTreeClassifier(max_depth=None, max_features=None, criterion='entropy', class_weight='balanced')  # 决策树
-    train_times = [1, 10, 100]
+    train_times = [1, 10,100]
     for i in range(len(train_times)):
         result = model_training_and_predict(os.path.join(FILE_ROOT_DIRECTORY, 'src/resource/DataCleaning/seeds_1'),
                                             train_times[i],
