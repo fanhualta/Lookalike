@@ -5,7 +5,7 @@ __pycache__/
 .idea/
 
 src/resource/DataCleaning
-
+*.ipynb
 # C extensions
 *.so
 
